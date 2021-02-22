@@ -51,13 +51,11 @@ pub fn rand_pos(rng: &mut ThreadRng, max: u32) -> i32 {
 }
 
 pub fn wordfile_2_rand_vec(rng: &mut ThreadRng) -> Vec<String> {
+    let wordlist = include_str!("wordlist.txt");
+    let lines = wordlist.lines();
     let mut word_vec = Vec::new();
-    if let Ok(lines) = read_lines("src/wordlist.txt") {
-        for line in lines {
-            if let Ok(word) = line {
-                word_vec.push(word);
-            }
-        }
+    for word in lines {
+        word_vec.push(word.to_string());
     }
     word_vec.shuffle(rng);
     word_vec
