@@ -1,9 +1,15 @@
 [package]
 name = "typemaster"
 version = "0.2.1"
-authors = ["geri <geri@sdf.org>"]
+authors = ["Gerhard Schwanzer <geri@sdf.org>"]
 edition = "2018"
-
+license = "MIT"
+description = "A typetrainer-game that helps to increase your speed in typewriting"
+homepage = "https:://github.com/geri1701/typemaster"
+repository = "https:://github.com/geri1701/typemaster"
+readme = "README.md"
+keywords = ["terminal", "tui", "input", "game"]
+categories = "game"
 [dependencies]
 console_engine = "1.4.2"
 rand = "0.8.3"
