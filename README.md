@@ -2,7 +2,7 @@
 ![Crates.io](https://img.shields.io/crates/v/typemaster.svg)
 
 Typemaster is a typetrainer-game that helps to increase your speed in typewriting,
-it runs in your terminal using console-engine [console_engine](https://crates.io/crates/console_engine)
+it runs in your terminal using [console_engine](https://crates.io/crates/console_engine)
 
 This software is written in Rust.
 

@@ -1,6 +1,6 @@
 [package]
 name = "typemaster"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Gerhard Schwanzer <geri@sdf.org>"]
 edition = "2018"
 license = "MIT"
