@@ -9,7 +9,7 @@ homepage = "https:://github.com/geri1701/typemaster"
 repository = "https:://github.com/geri1701/typemaster"
 readme = "README.md"
 keywords = ["terminal", "tui", "input", "game"]
-categories = "game"
+categories = ["game"]
 [dependencies]
 console_engine = "1.4.2"
 rand = "0.8.3"
