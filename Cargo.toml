@@ -10,6 +10,8 @@ repository = "https://github.com/geri1701/typemaster"
 readme = "README.md"
 keywords = ["terminal", "tui", "input"]
 categories = ["terminal"]
+
 [dependencies]
-console_engine = "1.4.2"
+console_engine = "2"
+figlet-rs = "0.1.5"
 rand = "0.8.3"
