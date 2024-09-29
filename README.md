@@ -6,8 +6,8 @@ it runs in your terminal using [console_engine](https://crates.io/crates/console
 
 This software is written in Rust.
 
-![menu](https://raw.githubusercontent.com/geri1701/typemaster/master/screenshots/tm_main_menu.png)
-![ingame](https://raw.githubusercontent.com/geri1701/typemaster/master/screenshots/tm_ingame.png)
+![menu](assets/tm_main_menu.png)
+![ingame](assets/tm_ingame.png)
 
 ## Installation
 

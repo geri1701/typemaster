@@ -1,7 +1,9 @@
-use rand::{prelude::SliceRandom, rngs::ThreadRng, Rng};
-use std::{
-    env, fs,
-    time::{Duration, Instant},
+use {
+    rand::{prelude::SliceRandom, rngs::ThreadRng, thread_rng, Rng},
+    std::{
+        env, fs,
+        time::{Duration, Instant},
+    },
 };
 
 pub const NAME: &str = "TypeMaster";
@@ -29,6 +31,7 @@ impl Difficulty {
 }
 
 pub struct Game<'a> {
+    rng: ThreadRng,
     words: Vec<&'a str>,           //WORDS LIST
     list: Vec<(String, i32, i32)>, //CURRENT LIST
     seq: usize,                    // Index current list
@@ -66,13 +69,15 @@ impl Game<'_> {
         };
         self.typed_chars += 1;
     }
-    pub fn new(rng: &mut ThreadRng) -> Self {
+    pub fn new() -> Self {
+        let mut rng = thread_rng();
         let mut words = Vec::new();
         for word in include_str!("../assets/wordlist.txt").lines() {
             words.push(word);
         }
-        words.shuffle(rng);
+        words.shuffle(&mut rng);
         Self {
+            rng,
             words,
             list: Vec::new(),
             seq: 0,
@@ -101,7 +106,7 @@ impl Game<'_> {
             self.list[idx].2 += 1;
         }
     }
-    pub fn step(&mut self, rng: &mut ThreadRng, width: u32) {
+    pub fn step(&mut self, width: u32) {
         self.check_time();
         self.frame_count = match self.frame_count < self.control.0 {
             true => self.frame_count + 1,
@@ -115,7 +120,10 @@ impl Game<'_> {
                 true => self.seq.saturating_add(1),
                 false => 0,
             };
-            let x = rng.gen_range(2..width - 1 - self.words[self.seq].len() as u32) as i32;
+            let x = self
+                .rng
+                .gen_range(2..width - 1 - self.words[self.seq].len() as u32)
+                as i32;
             self.list.push((self.words[self.seq].to_string(), x, 1));
         }
     }

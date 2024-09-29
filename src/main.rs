@@ -2,7 +2,6 @@ mod models;
 use {
     console_engine::{pixel, Color, ConsoleEngine, KeyCode},
     models::{Game, Model, Page, NAME},
-    rand::prelude::*,
 };
 
 fn main() {
@@ -19,7 +18,7 @@ fn main() {
                     0,
                     engine.get_width() as i32 - 1,
                     engine.get_height() as i32 - 1,
-                    pixel::pxl_fg('#', Color::DarkGreen),
+                    pixel::pxl_fg('#', Color::DarkYellow),
                 );
                 engine.print(2, 2, "Press ESC to go back to Menu!");
                 engine.print(2, 4, include_str!("../LICENSE"));
@@ -37,7 +36,7 @@ fn main() {
                     0,
                     engine.get_width() as i32 - 1,
                     engine.get_height() as i32 - 1,
-                    pixel::pxl('#'),
+                    pixel::pxl_fg('#', Color::DarkGreen),
                 );
                 engine.print_fbg(
                     (engine.get_width() / 2) as i32 - 28,
@@ -81,10 +80,9 @@ fn main() {
                 engine.draw();
             }
             Page::Game => {
-                let mut rng = thread_rng();
-                let mut game = Game::new(&mut rng);
+                let mut game = Game::new();
                 while state.page() == Page::Game {
-                    game.step(&mut rng, engine.get_width() + 2);
+                    game.step(engine.get_width() + 2);
                     engine.wait_frame();
                     engine.check_resize();
                     engine.clear_screen();
