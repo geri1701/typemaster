@@ -115,7 +115,7 @@ impl Game<'_> {
                 true => self.seq.saturating_add(1),
                 false => 0,
             };
-            let x = rng.gen_range(1..width - self.words[self.seq].len() as u32) as i32;
+            let x = rng.gen_range(2..width - 1 - self.words[self.seq].len() as u32) as i32;
             self.list.push((self.words[self.seq].to_string(), x, 1));
         }
     }

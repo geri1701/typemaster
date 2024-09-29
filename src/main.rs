@@ -19,7 +19,7 @@ fn main() {
                     0,
                     engine.get_width() as i32 - 1,
                     engine.get_height() as i32 - 1,
-                    pixel::pxl('#'),
+                    pixel::pxl_fg('#', Color::DarkGreen),
                 );
                 engine.print(2, 2, "Press ESC to go back to Menu!");
                 engine.print(2, 4, include_str!("../LICENSE"));
@@ -56,11 +56,12 @@ fn main() {
                     12,
                     &format!(
                         r#"Press ENTER to start.
-Press TAB to toggle difficulty: {}
-Press F12 to read license.
-Press ESC to quit.
-Your Highscore: {}
-Your highest Cpm: {},
+      TAB to toggle difficulty: {}
+      F12 to read license.
+      ESC to quit.
+
+ Your Highscore: {}
+      Highest Cpm: {},
 "#,
                         state.difficulty().to_str(),
                         state.highscore().0,
@@ -92,14 +93,14 @@ Your highest Cpm: {},
                         0,
                         engine.get_width() as i32 - 1,
                         engine.get_height() as i32 - 1,
-                        pixel::pxl('#'),
+                        pixel::pxl_fg('#', Color::DarkBlue),
                     );
                     engine.line(
                         1,
                         (engine.get_height() - 3) as i32,
                         (engine.get_width() - 2) as i32,
                         (engine.get_height() - 3) as i32,
-                        pixel::pxl('^'),
+                        pixel::pxl_fg('^', Color::DarkRed),
                     );
                     engine.print(
                         2,
