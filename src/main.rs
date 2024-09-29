@@ -40,9 +40,9 @@ fn main() {
                     pixel::pxl('#'),
                 );
                 engine.print_fbg(
-                    (engine.get_width() / 2) as i32 - 48,
+                    (engine.get_width() / 2) as i32 - 28,
                     3,
-                    &figlet_rs::FIGfont::standard()
+                    &figleter::FIGfont::standard()
                         .unwrap()
                         .convert(NAME)
                         .unwrap()
@@ -83,6 +83,7 @@ Your highest Cpm: {},
                 let mut rng = thread_rng();
                 let mut game = Game::new(&mut rng);
                 while state.page() == Page::Game {
+                    game.step(&mut rng, engine.get_width() + 2);
                     engine.wait_frame();
                     engine.check_resize();
                     engine.clear_screen();
@@ -104,35 +105,31 @@ Your highest Cpm: {},
                         2,
                         (engine.get_height() - 2) as i32,
                         &format!(
-                            "Score: {} cpm: {} wpm: {} (Highscore: {} Max-cpm: {})",
+                            "Score: {}; Char per minut: {}; Word per mimut: {}; (Highscore: {} Max-cpm: {})",
                             game.typed_chars(),
                             game.cpm(),
                             game.wpm(),
                             state.highscore().0,
-                            state.highscore().1
+                            state.highscore().1,
                         ),
                     );
-                    game.add(&mut rng, engine.get_width() + 2);
-                    for (word, x, y) in game.list() {
+                    for (idx, (word, x, y)) in game.list().iter().enumerate() {
+                        game.shift(idx);
                         engine.print(*x, *y, word);
                     }
-                    let (_, x, y) = game.list()[0].clone();
-                    if engine.is_key_pressed(KeyCode::Esc) || y == (engine.get_height() - 3) as i32
+                    let (x, y, letter) = game.letter();
+                    engine.set_pxl(x, y, pixel::pxl_fg(letter, Color::DarkGreen));
+                    if engine.is_key_pressed(KeyCode::Esc)
+                        || game.check_boarder(engine.get_height())
                     {
                         state.set_page(Page::Welcome);
                     }
-                    let letter = game.letter();
-                    engine.set_pxl(x, y, pixel::pxl_fg(letter, Color::DarkGreen));
                     if engine.is_key_pressed(KeyCode::Char(letter)) {
                         game.del();
                         game.set_control(state.difficulty() as u8);
-                    }
-                    game.check_time();
-                    engine.draw();
-                    if state.highscore().0 < game.typed_chars() && state.highscore().1 < game.cpm()
-                    {
                         state.set_highscore((game.typed_chars(), game.cpm()));
-                    };
+                    }
+                    engine.draw();
                 }
             }
         }

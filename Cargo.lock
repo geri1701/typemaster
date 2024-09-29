@@ -62,10 +62,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "figlet-rs"
-version = "0.1.5"
+name = "figleter"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4742a071cd9694fc86f9fa1a08fa3e53d40cc899d7ee532295da2d085639fbc5"
+checksum = "04e0769e6cf86e246a3eee5b84b9e9b1abb9bca8b4161136f03ce752dac15ea9"
 
 [[package]]
 name = "getrandom"
@@ -240,7 +240,7 @@ name = "typemaster"
 version = "0.2.3"
 dependencies = [
  "console_engine",
- "figlet-rs",
+ "figleter",
  "rand",
 ]
 

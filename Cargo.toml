@@ -12,6 +12,12 @@ keywords = ["terminal", "tui", "input"]
 categories = ["terminal"]
 
 [dependencies]
-console_engine = "2"
-figlet-rs = "0.1.5"
+console_engine = "2.6"
+figleter = "0.2.2"
 rand = "0.8.3"
+
+[profile.release]
+strip = true
+opt-level = "z"
+lto = true
+panic = "abort"

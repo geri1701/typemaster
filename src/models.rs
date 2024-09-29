@@ -29,16 +29,16 @@ impl Difficulty {
 }
 
 pub struct Game<'a> {
-    words: Vec<&'a str>,
-    list: Vec<(String, i32, i32)>,
-    seq: usize,
-    frame_count: u32,
+    words: Vec<&'a str>,           //WORDS LIST
+    list: Vec<(String, i32, i32)>, //CURRENT LIST
+    seq: usize,                    // Index current list
+    frame_count: u32,              //FPS
     score: u32,
     cpm: u32,
     wpm: u32,
     typed_chars: u32,
     now: Instant,
-    control: (u32, u32),
+    control: (u32, i32),
 }
 
 impl Game<'_> {
@@ -51,26 +51,15 @@ impl Game<'_> {
     pub fn wpm(&self) -> u32 {
         self.wpm
     }
-    pub fn frame_count(&self) -> u32 {
-        self.frame_count
+    pub fn list(&self) -> Vec<(String, i32, i32)> {
+        self.list.clone()
     }
-    pub fn set_frame(&mut self, value: u32) {
-        self.frame_count = value;
-    }
-    pub fn set_typed(&mut self, value: u32) {
-        self.typed_chars = value;
-    }
-    pub fn control(&self) -> (u32, u32) {
-        self.control
-    }
-    pub fn list(&self) -> &Vec<(String, i32, i32)> {
-        &self.list
-    }
-    pub fn letter(&self) -> char {
-        self.list()[0].0.chars().next().unwrap()
+    pub fn letter(&self) -> (i32, i32, char) {
+        let (word, x, y) = &self.list[0];
+        (*x, *y, word.chars().next().unwrap())
     }
     pub fn del(&mut self) {
-        if !self.list[0].0.is_empty() {
+        if self.list[0].0.len() > 1 {
             self.list[0].0.remove(0);
         } else {
             self.list.remove(0);
@@ -96,7 +85,7 @@ impl Game<'_> {
             control: (50, 5),
         }
     }
-    pub fn check_time(&mut self) {
+    fn check_time(&mut self) {
         if self.now.elapsed() >= Duration::from_secs(20) {
             self.cpm = (self.typed_chars - self.score) * 3;
             self.wpm = self.cpm / 5;
@@ -104,8 +93,24 @@ impl Game<'_> {
             self.now = Instant::now();
         }
     }
-    pub fn add(&mut self, rng: &mut ThreadRng, width: u32) {
-        if self.list[0].0.is_empty() || self.list.is_empty() {
+    pub fn check_boarder(&self, value: u32) -> bool {
+        self.list[0].2 as u32 > value - 3
+    }
+    pub fn shift(&mut self, idx: usize) {
+        if self.frame_count == self.control.0 {
+            self.list[idx].2 += 1;
+        }
+    }
+    pub fn step(&mut self, rng: &mut ThreadRng, width: u32) {
+        self.check_time();
+        self.frame_count = match self.frame_count < self.control.0 {
+            true => self.frame_count + 1,
+            false => 0,
+        };
+        if self.list.is_empty()
+            || self.list[0].0.is_empty()
+            || (self.list[0].2 % self.control.1 == 0 && self.frame_count == self.control.0)
+        {
             self.seq = match self.seq < self.words.len() {
                 true => self.seq.saturating_add(1),
                 false => 0,
@@ -170,7 +175,12 @@ impl Model {
         self.page = value;
     }
     pub fn set_highscore(&mut self, value: (u32, u32)) {
-        self.highscore = value;
+        if self.highscore.0 < value.0 {
+            self.highscore.0 = value.0
+        };
+        if self.highscore.1 < value.1 {
+            self.highscore.1 = value.1
+        };
         self.save_highscore();
     }
     pub fn set_exit(&mut self, value: bool) {
