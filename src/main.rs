@@ -104,7 +104,7 @@ fn main() {
                         2,
                         (engine.get_height() - 2) as i32,
                         &format!(
-                            "Score: {}; Char per minut: {}; Word per mimut: {}; (Highscore: {} Max-cpm: {})",
+                            "Score: {}; Chars per minute: {}; Words per minute: {}; (Highscore: {} Max-cpm: {})",
                             game.typed_chars(),
                             game.cpm(),
                             game.wpm(),
