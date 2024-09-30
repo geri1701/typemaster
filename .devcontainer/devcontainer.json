@@ -1,0 +1,11 @@
+{
+  "name": "Rust Dev Container",
+  "image": "mcr.microsoft.com/vscode/devcontainers/rust:latest",
+  "extensions": [
+    "matklad.rust-analyzer"
+  ],
+  "settings": {
+    "rust-analyzer.cargo.autoreload": true
+  },
+  "postCreateCommand": "rustup component add rust-analyzer"
+}
