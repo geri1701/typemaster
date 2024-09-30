@@ -20,8 +20,3 @@ Compile the typemaster-crate:
 ```
 cargo install typemaster
 ```
-### Windows
-
-For all Windows users who are not able to compile something themselves or who are already too lazy to do so, I'll prepare a binary soon.
-
-
