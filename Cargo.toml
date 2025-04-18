@@ -14,7 +14,7 @@ categories = ["terminal"]
 [dependencies]
 console_engine = "2.6"
 figleter = "0.2.2"
-rand = "0.8.5"
+rand = "0.9.1"
 
 [profile.release]
 strip = true
