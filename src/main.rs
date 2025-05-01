@@ -55,6 +55,7 @@ fn main() {
                     12,
                     &format!(
                         r#"Press ENTER to start.
+      'L' to toggle language: {}
       TAB to toggle difficulty: {}
       F12 to read license.
       ESC to quit.
@@ -62,6 +63,7 @@ fn main() {
  Your Highscore: {}
       Highest Cpm: {},
 "#,
+                        state.lang().clone().to_str(),
                         state.difficulty().to_str(),
                         state.highscore().0,
                         state.highscore().1
@@ -70,8 +72,11 @@ fn main() {
                 if engine.is_key_pressed(KeyCode::Tab) {
                     state.shift_difficulty();
                 }
+                if engine.is_key_pressed(KeyCode::Char('l')) {
+                    state.shift_lang();
+                }
                 if engine.is_key_pressed(KeyCode::Enter) {
-                    state.set_page(Page::Game);
+                    state.set_page(Page::Main);
                 }
                 if engine.is_key_pressed(KeyCode::F(12)) {
                     state.set_page(Page::Licence);
@@ -79,9 +84,9 @@ fn main() {
                 state.set_exit(engine.is_key_pressed(KeyCode::Esc));
                 engine.draw();
             }
-            Page::Game => {
-                let mut game = Game::new();
-                while state.page() == Page::Game {
+            Page::Main => {
+                let mut game = Game::new(state.lang());
+                loop {
                     game.step(engine.get_width() + 2);
                     engine.wait_frame();
                     engine.check_resize();
@@ -122,6 +127,7 @@ fn main() {
                         || game.check_boarder(engine.get_height())
                     {
                         state.set_page(Page::Welcome);
+                        break;
                     }
                     if engine.is_key_pressed(KeyCode::Char(letter)) {
                         game.del();
