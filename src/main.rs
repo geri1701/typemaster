@@ -1,142 +1,208 @@
 mod models;
-use {
-    console_engine::{pixel, Color, ConsoleEngine, KeyCode},
-    models::{Game, Model, Page, NAME},
+use models::{Model, Page};
+use ratatui::{
+    crossterm::event::{self, Event, KeyCode},
+    prelude::*,
+    text::Line,
+    widgets::{Block, BorderType, Borders, Padding, Paragraph},
+    Frame,
 };
 
-fn main() {
-    let mut state = Model::default();
-    let mut engine = ConsoleEngine::init_fill_require(90, 30, 60).unwrap();
-    while !state.exit() {
-        match state.page() {
-            Page::Licence => {
-                engine.wait_frame();
-                engine.check_resize();
-                engine.clear_screen();
-                engine.rect(
-                    0,
-                    0,
-                    engine.get_width() as i32 - 1,
-                    engine.get_height() as i32 - 1,
-                    pixel::pxl_fg('#', Color::DarkYellow),
-                );
-                engine.print(2, 2, "Press ESC to go back to Menu!");
-                engine.print(2, 4, include_str!("../LICENSE"));
-                engine.draw();
-                if engine.is_key_pressed(KeyCode::Esc) {
-                    state.set_page(Page::Welcome);
-                };
+trait Sandbox {
+    fn view(&self, frame: &mut Frame);
+    fn subscription(&mut self) -> bool {
+        false
+    }
+    fn update(&mut self, event: Event) -> Option<bool>;
+    fn run(&mut self) {
+        let mut terminal = ratatui::init();
+        let _ = terminal.draw(|frame| self.view(frame));
+        loop {
+            let mut update = self.subscription();
+            if event::poll(std::time::Duration::from_millis(16)).unwrap() {
+                if let Some(value) = self.update(event::read().unwrap()) {
+                    update = update || value;
+                } else {
+                    break;
+                }
             }
-            Page::Welcome => {
-                engine.wait_frame();
-                engine.check_resize();
-                engine.clear_screen();
-                engine.rect(
-                    0,
-                    0,
-                    engine.get_width() as i32 - 1,
-                    engine.get_height() as i32 - 1,
-                    pixel::pxl_fg('#', Color::DarkGreen),
-                );
-                engine.print_fbg(
-                    (engine.get_width() / 2) as i32 - 28,
-                    3,
-                    &figleter::FIGfont::standard()
-                        .unwrap()
-                        .convert(NAME)
-                        .unwrap()
-                        .to_string(),
-                    Color::Red,
-                    Color::Reset,
-                );
-                engine.print((engine.get_width() / 2) as i32 - 2, 10, "MENU");
-                engine.print(
-                    (engine.get_width() / 2) as i32 - 17,
-                    12,
-                    &format!(
-                        r#"Press ENTER to start.
-      'L' to toggle language: {}
-      TAB to toggle difficulty: {}
-      F12 to read license.
-      ESC to quit.
-
- Your Highscore: {}
-      Highest Cpm: {},
-"#,
-                        state.lang().clone().to_str(),
-                        state.difficulty().to_str(),
-                        state.highscore().0,
-                        state.highscore().1
-                    ),
-                );
-                if engine.is_key_pressed(KeyCode::Tab) {
-                    state.shift_difficulty();
-                }
-                if engine.is_key_pressed(KeyCode::Char('l')) {
-                    state.shift_lang();
-                }
-                if engine.is_key_pressed(KeyCode::Enter) {
-                    state.set_page(Page::Main);
-                }
-                if engine.is_key_pressed(KeyCode::F(12)) {
-                    state.set_page(Page::Licence);
-                }
-                state.set_exit(engine.is_key_pressed(KeyCode::Esc));
-                engine.draw();
-            }
-            Page::Main => {
-                let mut game = Game::new(state.lang());
-                loop {
-                    game.step(engine.get_width() + 2);
-                    engine.wait_frame();
-                    engine.check_resize();
-                    engine.clear_screen();
-                    engine.rect(
-                        0,
-                        0,
-                        engine.get_width() as i32 - 1,
-                        engine.get_height() as i32 - 1,
-                        pixel::pxl_fg('#', Color::DarkBlue),
-                    );
-                    engine.line(
-                        1,
-                        (engine.get_height() - 3) as i32,
-                        (engine.get_width() - 2) as i32,
-                        (engine.get_height() - 3) as i32,
-                        pixel::pxl_fg('^', Color::DarkRed),
-                    );
-                    engine.print(
-                        2,
-                        (engine.get_height() - 2) as i32,
-                        &format!(
-                            "Score: {}; Chars per minute: {}; Words per minute: {}; (Highscore: {} Max-cpm: {})",
-                            game.typed_chars(),
-                            game.cpm(),
-                            game.wpm(),
-                            state.highscore().0,
-                            state.highscore().1,
-                        ),
-                    );
-                    for (idx, (word, x, y)) in game.list().iter().enumerate() {
-                        game.shift(idx);
-                        engine.print(*x, *y, word);
-                    }
-                    let (x, y, letter) = game.letter();
-                    engine.set_pxl(x, y, pixel::pxl_fg(letter, Color::DarkGreen));
-                    if engine.is_key_pressed(KeyCode::Esc)
-                        || game.check_boarder(engine.get_height())
-                    {
-                        state.set_page(Page::Welcome);
-                        break;
-                    }
-                    if engine.is_key_pressed(KeyCode::Char(letter)) {
-                        game.del();
-                        game.set_control(state.difficulty() as u8);
-                        state.set_highscore((game.typed_chars(), game.cpm()));
-                    }
-                    engine.draw();
-                }
+            if update {
+                let _ = terminal.draw(|frame| self.view(frame));
             }
         }
     }
+}
+
+impl Sandbox for models::Model {
+    fn subscription(&mut self) -> bool {
+        if let Page::Main = self.page {
+            self.step_game();
+            return true;
+        };
+        false
+    }
+    fn update(&mut self, event: Event) -> Option<bool> {
+        if let Event::Key(keyevent) = event {
+            return match keyevent.code {
+                KeyCode::Tab => {
+                    if let Page::Welcome = self.page {
+                        self.level = self.level.switch();
+                        return Some(true);
+                    };
+                    Some(false)
+                }
+                KeyCode::F(10) => {
+                    if let Page::Welcome = self.page {
+                        self.lang = self.lang.switch();
+                        return Some(true);
+                    };
+                    Some(false)
+                }
+                KeyCode::F(12) => {
+                    if let Page::Welcome = self.page {
+                        self.page = Page::Licence;
+                        return Some(true);
+                    };
+                    Some(false)
+                }
+                KeyCode::Char(value) => {
+                    if let Page::Main = self.page {
+                        self.letter(value);
+                        return Some(true);
+                    };
+                    Some(false)
+                }
+                KeyCode::Enter => {
+                    if let Page::Welcome = self.page {
+                        self.page = Page::Main;
+                        self.words = self.lang.wordlist();
+                        self.step_game();
+                        return Some(true);
+                    };
+                    Some(false)
+                }
+                KeyCode::Esc => {
+                    if let Page::Main = self.page {
+                        self.save_highscore();
+                    };
+                    self.page = self.page.esc();
+                    if let Page::Quit = self.page {
+                        return None;
+                    };
+                    Some(true)
+                }
+                _ => Some(false),
+            };
+        };
+        Some(false)
+    }
+    fn view(&self, frame: &mut Frame) {
+        match self.page {
+            Page::Quit => {}
+            Page::Licence => frame.render_widget(
+                Paragraph::new(include_str!("../LICENSE"))
+                    .style(Style::default().fg(Color::Yellow))
+                    .block(
+                        Block::default()
+                            .padding(Padding::new(5, 10, 1, 2))
+                            .borders(Borders::ALL)
+                            .border_style(Style::default().fg(Color::Yellow))
+                            .title(Line::from("[ LICENSE ]".bold()).centered())
+                            .title_bottom(
+                                Line::from(Vec::from([
+                                    " Press ".into(),
+                                    "<ESC>".blue().bold(),
+                                    " to go back to Menu! ".into(),
+                                ]))
+                                .centered(),
+                            )
+                            .border_type(BorderType::Rounded),
+                    ),
+                frame.area(),
+            ),
+            Page::Welcome => {
+                let outer = Block::bordered()
+                    .border_style(Style::default().fg(Color::Yellow))
+                    .border_type(BorderType::Rounded)
+                    .borders(Borders::ALL)
+                    .title(Line::from("[ WELCOME ]".bold()).centered());
+                let [title, body] = Layout::vertical([Constraint::Length(6), Constraint::Min(0)])
+                    .areas(outer.inner(frame.area()));
+                let [_left, center, _right] = Layout::horizontal([
+                    Constraint::Min(0),
+                    Constraint::Length(45),
+                    Constraint::Min(0),
+                ])
+                .areas(body);
+                frame.render_widget(outer, frame.area());
+                frame.render_widget(
+                    Paragraph::new(
+                        figleter::FIGfont::standard()
+                            .unwrap()
+                            .convert(Self::NAME)
+                            .unwrap()
+                            .to_string(),
+                    )
+                    .style(Style::default().fg(Color::Red))
+                    .centered(),
+                    title,
+                );
+                frame.render_widget(
+                    Paragraph::new(format!(
+                        r#"
+Press <ENTER> to start
+      <TAB>   to toggle difficulty: {}
+      <F10>   to toggle language:   {}
+      <F12>   to read license
+      <ESC>   to quit
+
+ Your Highscore:   {},
+      Highest Cpm: {},
+"#,
+                        self.level.to_str(),
+                        self.lang.to_str(),
+                        self.highscore.0,
+                        self.highscore.1,
+                    ))
+                    .style(Style::default().fg(Color::Green))
+                    .block(Block::default().borders(Borders::NONE)),
+                    center,
+                );
+            }
+            Page::Main => {
+                let outer = Block::bordered()
+                    .border_style(Style::default().fg(Color::Yellow))
+                    .border_type(BorderType::Rounded)
+                    .borders(Borders::ALL)
+                    .title(Line::from("[ PLAY ]".bold()).centered())
+                    .title_bottom(
+                        Line::from(format!(
+                            "[ Score: {}; Chars / minute: {}; Words / minute: {}; (Highscore: {} Max-cpm: {}); Words {}; Letters {}; ]",
+                            self.typed_chars,
+                            self.cpm,
+                            self.wpm,
+                            self.highscore.0,
+                            self.highscore.1,
+                            self.words.len(),
+                            self.scope.keys().len(),
+                        ))
+                        .centered(),
+                    );
+                frame.render_widget(outer, frame.area());
+                for (word, x, y) in &self.list {
+                    frame.render_widget(
+                        Paragraph::new(Line::from(vec![
+                            word[0..1].to_string().green().bold(),
+                            word[1..word.len()].to_string().into(),
+                        ])),
+                        Rect::new(*x as u16, *y as u16, word.len() as u16, 1),
+                    );
+                }
+            }
+        };
+    }
+}
+
+fn main() {
+    Model::default().run();
 }

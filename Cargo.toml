@@ -12,7 +12,7 @@ keywords = ["terminal", "tui", "input"]
 categories = ["terminal"]
 
 [dependencies]
-console_engine = "2.6"
+ratatui = "0.29.0"
 figleter = "0.2.2"
 rand = "0.9.1"
 
