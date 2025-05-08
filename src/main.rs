@@ -23,6 +23,7 @@ trait Sandbox {
                 if let Some(value) = self.update(event::read().unwrap()) {
                     update = update || value;
                 } else {
+                    ratatui::restore();
                     break;
                 }
             }
